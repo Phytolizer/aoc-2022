@@ -16,7 +16,12 @@ when isMainModule:
   if dayStr.startsWith("day") or dayStr.startsWith("dec"):
     dayStr = dayStr[3 .. ^1]
 
-  let day = dayStr.parseInt()
+  let day = try:
+    dayStr.parseInt()
+  except ValueError:
+    echo "Invalid day: ", dayStr
+    echo "Expected format: dayXX or decXX or XX"
+    quit 1
 
   let input = readFile(params[1])
   case day
