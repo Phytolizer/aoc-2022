@@ -1,5 +1,6 @@
 import std/[
   math,
+  sequtils,
   strutils,
 ]
 
@@ -9,22 +10,17 @@ type MaxList = object
 
 proc newMaxList(n: int): MaxList =
   result.n = n
-  result.list = newSeq[int](n)
+  result.list = newSeqOfCap[int](n)
 
 proc add(self: var MaxList, x: int) =
-  if self.list.len == 0:
+  if self.list.len < self.n:
     self.list.add(x)
     return
 
-  var insertIndex = self.list.len
-  for (i, v) in self.list.pairs:
-    if x <= v:
-      insertIndex = i
-      break
-
-  self.list.insert(x, insertIndex)
-  if self.list.len > self.n:
-    self.list = self.list[1 .. ^1]
+  let min = self.list.min()
+  if x < min:
+    return
+  self.list = self.list.filterIt(it != min).concat(@[x])
 
 proc run*(input: string, part: int): string =
   var currTotal = 0
@@ -41,5 +37,8 @@ proc run*(input: string, part: int): string =
 
     let calories = line.parseInt()
     currTotal += calories
+
+  if currTotal > 0:
+    bestTotals.add(currTotal)
 
   return $bestTotals.list.sum()
