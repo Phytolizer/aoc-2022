@@ -1,4 +1,27 @@
-import aoc2022pkg/submodule
+import std/[
+  os,
+  strutils,
+]
+
+import aoc2022pkg/dec01
 
 when isMainModule:
-  echo(getWelcomeMessage())
+  if paramCount() < 2:
+    echo "Usage: aoc2022 <day> <input>"
+    quit(1)
+
+  let params = commandLineParams()
+
+  var dayStr = params[0]
+  if dayStr.startsWith("day") or dayStr.startsWith("dec"):
+    dayStr = dayStr[3 .. ^1]
+
+  let day = dayStr.parseInt()
+
+  let input = readFile(params[1])
+  case day
+  of 1:
+    echo "Part 1: ", dec01.run(input, 1)
+    echo "Part 2: ", dec01.run(input, 2)
+  else:
+    echo "Day ", day, " not implemented"
