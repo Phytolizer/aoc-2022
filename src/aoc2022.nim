@@ -3,7 +3,10 @@ import std/[
   strutils,
 ]
 
-import aoc2022pkg/dec01
+import aoc2022pkg/[
+  dec01,
+  dec02,
+]
 
 when isMainModule:
   if paramCount() < 2:
@@ -28,5 +31,8 @@ when isMainModule:
   of 1:
     echo "Part 1: ", dec01.run(input, 1)
     echo "Part 2: ", dec01.run(input, 2)
+  of 2:
+    echo "Part 1: ", dec02.run(input, 1)
+    echo "Part 2: ", dec02.run(input, 2)
   else:
     echo "Day ", day, " not implemented"
