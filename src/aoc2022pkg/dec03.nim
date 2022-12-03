@@ -12,9 +12,10 @@ proc partition(s: string): (string, string) =
 
 
 proc priority(letter: char): int =
-  if letter in {'a'..'z'}:
+  case letter
+  of {'a'..'z'}:
     ord(letter) - ord('a') + 1
-  elif letter in {'A'..'Z'}:
+  of {'A'..'Z'}:
     ord(letter) - ord('A') + 27
   else:
     0
