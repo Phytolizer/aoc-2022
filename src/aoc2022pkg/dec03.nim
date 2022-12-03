@@ -21,6 +21,12 @@ proc priority(letter: char): int =
     0
 
 
+proc prod[T](s: seq[HashSet[T]]): HashSet[T] =
+  result = s[0]
+  for i in 1 ..< s.len:
+    result = result * s[i]
+
+
 proc run*(input: string, part: int): string =
   var total = 0
   var i = 0
@@ -39,7 +45,7 @@ proc run*(input: string, part: int): string =
       groups.add line.toHashSet()
       inc i
       if i == 3:
-        let intersection = groups[0] * groups[1] * groups[2]
+        let intersection = groups.prod()
         total += intersection.items.toSeq[0].priority
         groups.setLen(0)
         i = 0
