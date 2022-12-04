@@ -6,6 +6,8 @@ import std/[
 import aoc2022pkg/[
   dec01,
   dec02,
+  dec03,
+  dec04,
 ]
 
 when isMainModule:
@@ -34,5 +36,12 @@ when isMainModule:
   of 2:
     echo "Part 1: ", dec02.run(input, 1)
     echo "Part 2: ", dec02.run(input, 2)
+  of 3:
+    echo "Part 1: ", dec03.run(input, 1)
+    echo "Part 2: ", dec03.run(input, 2)
+  of 4:
+    echo "Part 1: ", dec04.run(input, 1)
+    echo "Part 2: ", dec04.run(input, 2)
   else:
     echo "Day ", day, " not implemented"
+    quit 1
