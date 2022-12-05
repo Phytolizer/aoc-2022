@@ -69,7 +69,7 @@ macro adventTest*(day: int, expected: array[4, string]): untyped =
       part = i div 2 + 1
     tests.add Test(
       body: adventAssertion(base, input, part, expected[i].strVal),
-      name: inputName & " " & $part
+      name: fmt"{inputName} {part}"
     )
 
   var testCases: seq[NimNode] = @[]
