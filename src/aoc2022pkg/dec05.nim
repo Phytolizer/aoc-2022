@@ -59,7 +59,7 @@ proc moveCrates(s: var CrateStacks, inst: Instruction, part: int) =
       s.stacks[inst.dest - 1].add(crate)
   of 2:
     # grab all crates at once
-    var crates: seq[char] = @[]
+    var crates = newSeqOfCap[char](inst.num)
     for _ in 0 ..< inst.num:
       crates.add(s.stacks[inst.source - 1].pop())
     # move them to the destination
