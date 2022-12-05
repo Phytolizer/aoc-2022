@@ -15,7 +15,6 @@ when isMainModule:
   for file in files:
     let (_, name, ext) = file.path.splitFile()
     if ext == ".nim" and name[0] == 't' and file.kind in {pcFile, pcLinkToFile}:
-      echo "Running: " & name
       let code = execShellCmd fmt"nim c --outDir:bin --verbosity:0 -r {file.path}"
       if code != 0:
         failures += 1
