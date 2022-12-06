@@ -1,7 +1,4 @@
-import std/[
-  deques,
-  math,
-]
+import std/deques
 
 proc run*(input: string, part: int): string =
   var seen: array[char, int]
@@ -12,10 +9,10 @@ proc run*(input: string, part: int): string =
   for (i, c) in input.pairs:
     seen[c] += 1
     deq.addLast(c)
-    block main:
+    block checkDone:
       if i >= uniqueLen:
         seen[deq.popFirst()] -= 1
         for dc in deq:
           if seen[dc] > 1:
-            break main
+            break checkDone
         return $(i + 1)
