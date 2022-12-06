@@ -54,29 +54,28 @@ const invertedGames = static:
   ])
 
 const textToShape = static:
-  toTable([
-    ("A", sRock),
-    ("B", sPaper),
-    ("C", sScissors),
-    ("X", sRock),
-    ("Y", sPaper),
-    ("Z", sScissors),
-  ])
+  var xs: array[char, Shape]
+  xs['A'] = sRock
+  xs['B'] = sPaper
+  xs['C'] = sScissors
+  xs['X'] = sRock
+  xs['Y'] = sPaper
+  xs['Z'] = sScissors
+  xs
 
 const textToPlayResult = static:
-  toTable([
-    ("X", prLoss),
-    ("Y", prDraw),
-    ("Z", prWin),
-  ])
+  var xs: array[char, PlayResult]
+  xs['X'] = prLoss
+  xs['Y'] = prDraw
+  xs['Z'] = prWin
+  xs
 
 proc run*(input: string, part: int): string =
   var total = 0
   for line in input.splitLines:
     if line.isEmptyOrWhitespace:
       continue
-    let words = line.splitWhitespace()
-    let (call, response) = (textToShape[words[0]], words[1])
+    let (call, response) = (textToShape[line[0]], line[2])
 
     case part
     of 1:

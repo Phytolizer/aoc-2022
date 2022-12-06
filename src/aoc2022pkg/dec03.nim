@@ -1,6 +1,5 @@
 import std/[
   sequtils,
-  sets,
   strutils,
 ]
 
@@ -21,7 +20,12 @@ proc priority(letter: char): int =
     0
 
 
-proc prod[T](s: seq[HashSet[T]]): HashSet[T] =
+proc toBitset(s: string): set[char] =
+  for c in s:
+    result.incl(c)
+
+
+proc prod(s: openArray[set[char]]): set[char] =
   result = s[0]
   for i in 1 ..< s.len:
     result = result * s[i]
@@ -30,23 +34,22 @@ proc prod[T](s: seq[HashSet[T]]): HashSet[T] =
 proc run*(input: string, part: int): string =
   var total = 0
   var i = 0
-  var groups: seq[HashSet[char]] = @[]
+  var groups: array[3, set[char]]
   for line in input.splitLines:
     if line.isEmptyOrWhitespace:
       continue
     if part == 1:
       let (left, right) = line.partition()
-      let uniqueLeft = left.toHashSet()
-      let uniqueRight = right.toHashSet()
+      let uniqueLeft = left.toBitset()
+      let uniqueRight = right.toBitset()
 
       let intersection = uniqueLeft * uniqueRight
       total += intersection.items.toSeq[0].priority
     else:
-      groups.add line.toHashSet()
+      groups[i] = line.toBitset()
       inc i
       if i == 3:
         let intersection = groups.prod()
         total += intersection.items.toSeq[0].priority
-        groups.setLen(0)
         i = 0
   $total
