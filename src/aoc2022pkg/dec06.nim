@@ -13,6 +13,6 @@ proc run*(input: string, part: int): string =
   for (i, c) in input.pairs:
     stream.addLast c
     if stream.len > uniqueLen:
-      stream.shrink(fromFirst = stream.len - uniqueLen)
+      stream.popFirst()
     if stream.items.toSeq.toHashSet.len == uniqueLen:
       return $(i + 1)
