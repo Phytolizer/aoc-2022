@@ -19,24 +19,20 @@ macro runFuncs*(maxDay: int): untyped =
     result.add quote do:
       `module`.run
 
-macro runDay*(day: int, fmtDay: string, runFunc: untyped): untyped =
+macro runDay*(day: int, runFunc: untyped): untyped =
   result = quote do:
     block:
-      let simpleInputPath = "tests/dec" & `fmtDay` & "-simple.txt"
-      let inputPath = "tests/dec" & `fmtDay` & ".txt"
-      let
-        simpleInput = simpleInputPath.readFile()
-        input = inputPath.readFile()
+      let inputPath = "tests/dec" & align($`day`, 2, '0') & ".txt"
+      let input = inputPath.readFile()
       let start = getMonoTime()
-      for i in 0..<1000:
+      const runs = 10000
+      for i in 0..<runs:
         discard [
-          `runFunc`(simpleInput, 1),
           `runFunc`(input, 1),
-          `runFunc`(simpleInput, 2),
           `runFunc`(input, 2),
         ]
       let fin = getMonoTime()
-      let elapsed = (fin - start).inMicroseconds
+      let elapsed = (fin - start).inNanoseconds div runs
       echo elapsed
 
 macro runDays*(maxDay: int): untyped =
