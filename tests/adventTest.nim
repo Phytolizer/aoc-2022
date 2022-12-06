@@ -26,18 +26,14 @@ macro adventTest*(day: int, expected: array[4, string]): untyped =
   result = nnkStmtList.newTree()
   result.add nnkImportStmt.newTree nnkInfix.newTree(
     ident"/",
-    ident"std",
-    ident"unittest",
-  )
-  result.add nnkImportStmt.newTree nnkInfix.newTree(
-    ident"/",
     ident"aoc2022pkg",
     ident(base),
   )
   let
     simpleInput = ident"simpleInput"
     input = ident"input"
-  result.add nnkConstSection.newTree(
+  var stmts = nnkStmtList.newTree()
+  stmts.add nnkConstSection.newTree(
     nnkConstDef.newTree(
       simpleInput,
       newEmptyNode(),
@@ -80,8 +76,12 @@ macro adventTest*(day: int, expected: array[4, string]): untyped =
       nnkStmtList.newTree t.body
     )
 
-  result.add nnkCommand.newTree(
+  stmts.add nnkCommand.newTree(
     ident"suite",
     newLit(fmt"December {day:02}"),
     nnkStmtList.newTree testCases
+  )
+  result.add nnkBlockStmt.newTree(
+    newEmptyNode(),
+    stmts,
   )
