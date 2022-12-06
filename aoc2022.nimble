@@ -9,6 +9,8 @@ installExt    = @["nim"]
 binDir        = "bin"
 bin           = @["aoc2022"]
 
+task run, "Run the program":
+  exec "nim c -d:release --outDir:bin -r src/main.nim"
 
 task test, "Run tests":
   exec "nim c --outDir:bin -r tests/runTests.nim"
