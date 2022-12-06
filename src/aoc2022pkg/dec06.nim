@@ -14,5 +14,5 @@ proc run*(input: string, part: int): string =
     stream.addLast c
     if stream.len > uniqueLen:
       stream.popFirst()
-    if stream.items.toSeq.toHashSet.len == uniqueLen:
-      return $(i + 1)
+      if stream.items.toSeq.toHashSet.len == uniqueLen:
+        return $(i + 1)
