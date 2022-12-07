@@ -33,7 +33,15 @@ macro runDay*(day: int, runFunc: untyped): untyped =
         ]
       let fin = getMonoTime()
       let elapsed = (fin - start).inNanoseconds div runs
-      echo elapsed
+      echo(
+        "December ",
+        align($`day`, 2, '0'),
+        ": ",
+        elapsed.float64 / 1000.0,
+        " μs/run (",
+        runs,
+        " runs)"
+      )
 
 macro runDays*(maxDay: int): untyped =
   let maxDay = maxDay.intVal
