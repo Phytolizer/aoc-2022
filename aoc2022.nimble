@@ -18,3 +18,4 @@ task test, "Run tests":
 # Dependencies
 
 requires "nim >= 1.6.8"
+requires "print"
