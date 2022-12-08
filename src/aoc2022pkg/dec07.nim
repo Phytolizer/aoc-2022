@@ -42,14 +42,14 @@ proc addFile(t: var FsTree, name: string, size: uint64, parent: NodeIdx): NodeId
   var current = parent
   var previous = result
   while current != ROOT:
-    let dir = t.fs[current.int]
+    template dir: untyped = t.fs[current.int]
     var totalSize = 0.uint64
     var isChild = false
     var allComputed = true
     for child in dir.children:
       if child == previous:
         isChild = true
-      let childNode = t.fs[child.int]
+      template childNode: untyped = t.fs[child.int]
       case childNode.kind
       of fsFile:
         totalSize += childNode.size
