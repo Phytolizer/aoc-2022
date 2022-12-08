@@ -18,12 +18,11 @@ template `==`(a, b: NodeIdx): bool = a.int == b.int
 type FsNode = object
   name: string
   parent: NodeIdx
+  size: uint64
   case kind: FsKind
-  of fsFile:
-    size: uint64
   of fsDir:
     children: seq[NodeIdx]
-    treeSize: Option[uint64]
+  else: discard
 
 type FsTree = object
   fs: seq[FsNode]
@@ -39,36 +38,29 @@ proc addFile(t: var FsTree, name: string, size: uint64, parent: NodeIdx): NodeId
     size: size,
     parent: parent,
   )
-  var current = parent
-  var previous = result
-  while current != ROOT:
-    template dir: FsNode = t.fs[current.int]
-    var totalSize = 0.uint64
-    var isChild = false
-    var allComputed = true
-    for child in dir.children:
-      if child == previous:
-        isChild = true
-      template childNode: FsNode = t.fs[child.int]
-      case childNode.kind
-      of fsFile:
-        totalSize += childNode.size
-      of fsDir:
-        if childNode.treeSize.isSome:
-          totalSize += childNode.treeSize.get
-        else:
-          allComputed = false
-    if not isChild:
-      dir.children.add previous
-      totalSize += size
-    if allComputed:
-      if totalSize <= THRESHOLD:
-        t.smallest.incl current
+
+  t.fs[parent.int].children.add result
+
+proc computeDirSizes(t: var FsTree) =
+  var stack = newSeqOfCap[NodeIdx](t.fs.len)
+  stack.add(NodeIdx(0))
+  while stack.len > 0:
+    let idx = stack.pop()
+    for child in t.fs[idx.int].children:
+      if t.fs[child.int].kind == fsDir:
+        stack.add(child)
       else:
-        t.smallest.excl current
-      dir.treeSize = some(totalSize)
-    previous = current
-    current = dir.parent
+        t.fs[idx.int].size += t.fs[child.int].size
+    var current = t.fs[idx.int].parent
+    while current != ROOT:
+      t.fs[current.int].size += t.fs[idx.int].size
+      current = t.fs[current.int].parent
+
+proc computeSmallest(t: var FsTree) =
+  for nodeIdx in 0 ..< t.fs.len:
+    let node = t.fs[nodeIdx]
+    if node.kind == fsDir and node.size < THRESHOLD:
+      t.smallest.incl nodeIdx.NodeIdx
 
 proc addDir(t: var FsTree, name: string, parent: NodeIdx): NodeIdx =
   result = NodeIdx(t.fs.len)
@@ -76,7 +68,7 @@ proc addDir(t: var FsTree, name: string, parent: NodeIdx): NodeIdx =
     name: name,
     kind: fsDir,
     children: @[],
-    treeSize: none(uint64),
+    size: 0,
     parent: parent,
   )
   if parent != ROOT:
@@ -143,23 +135,25 @@ proc parseFs(input: string): FsTree =
       raiseAssert "Unknown command: " & line[2 .. ^1]
 
 proc run*(input: string, part: int): string =
-  let tree = parseFs(input)
+  var tree = parseFs(input)
+  tree.computeDirSizes()
+  tree.computeSmallest()
   # tree should be full
-  assert tree.fs[0].treeSize.isSome
+  assert tree.fs[0].size > 0
   if part == 1:
     var total = 0.uint64
     for s in tree.smallest:
-      total += tree.fs[s.int].treeSize.get
+      total += tree.fs[s.int].size
     $total
   else:
-    var avail = 70000000.uint64 - tree.fs[0].treeSize.get
+    var avail = 70000000.uint64 - tree.fs[0].size
     const goal = 30000000.uint64
     var candidate = 0
     for (i, ent) in tree.fs.pairs:
       if (
         ent.kind == fsDir and
-        ent.treeSize.get + avail >= goal and
-        ent.treeSize.get < tree.fs[candidate].treeSize.get
+        ent.size + avail >= goal and
+        ent.size < tree.fs[candidate].size
       ):
         candidate = i
-    $tree.fs[candidate].treeSize.get
+    $tree.fs[candidate].size
