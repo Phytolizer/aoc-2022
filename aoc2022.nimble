@@ -19,3 +19,4 @@ task test, "Run tests":
 
 requires "nim >= 1.6.8"
 requires "print"
+requires "neo"
