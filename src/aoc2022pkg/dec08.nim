@@ -1,6 +1,7 @@
 import std/[
   sequtils,
   strutils,
+  sugar,
 ]
 
 type Direction = enum
@@ -14,24 +15,27 @@ type TreeGrid = object
   rows: int
   cols: int
 
-proc `[]`(tg: TreeGrid, i: int, j: int): int =
+template `[]`(tg: ptr TreeGrid, i: int, j: int): int =
   tg.grid[i * tg.cols + j]
 
 proc newTreeGrid*(input: string): TreeGrid =
-  let lines = input.filterIt(it notin Whitespace).mapIt(it.int - '0'.int)
+  let lines = collect(newSeqOfCap(input.len)):
+    for c in input:
+      if c notin Whitespace:
+        c.int - '0'.int
   let numLines = input.countIt(it == '\n')
   result.grid = lines
   result.rows = numLines
   result.cols = input.find('\n')
 
-proc go(i: int, j: int, dir: Direction): tuple[r: int, c: int] =
+template go(i: int, j: int, dir: Direction): tuple[r: int, c: int] =
   case dir
   of dLeft: (i, j - 1)
   of dRight: (i, j + 1)
   of dUp: (i - 1, j)
   of dDown: (i + 1, j)
 
-proc countVisible(tg: TreeGrid, dir: Direction, seen: var set[uint16]) =
+proc countVisible(tg: ptr TreeGrid, dir: Direction, seen: var set[uint16]) =
   # if dir is dLeft or dRight, iterate rows then cols
   # if dir is dUp or dDown, iterate cols then rows
 
@@ -55,25 +59,28 @@ proc countVisible(tg: TreeGrid, dir: Direction, seen: var set[uint16]) =
           seen.incl(r.uint16 shl 8 or c.uint16)
         c = go(r, c, dir).c
 
-proc scenicScore(tg: TreeGrid, i: int, j: int): int =
-  proc inbounds(r: int, c: int): bool =
-    r >= 0 and r < tg.rows and c >= 0 and c < tg.cols
-  result = 1
-  for d in Direction:
-    var r = i
-    var c = j
-    var peak = tg[r, c]
-    (r, c) = go(r, c, d)
-    var partial = 0
-    while inbounds(r, c):
-      inc partial
-      if tg[r, c] >= peak:
-        break
+template scenicScore(tg: ptr TreeGrid, i: int, j: int): int =
+  block:
+    template inbounds(r: int, c: int): bool =
+      r >= 0 and r < tg.rows and c >= 0 and c < tg.cols
+    var res = 1
+    for d in Direction:
+      var r = i
+      var c = j
+      var peak = tg[r, c]
       (r, c) = go(r, c, d)
-    result *= partial
+      var partial = 0
+      while inbounds(r, c):
+        inc partial
+        if tg[r, c] >= peak:
+          break
+        (r, c) = go(r, c, d)
+      res *= partial
+    res
 
 proc run*(input: string, part: int): string =
-  let tg = input.newTreeGrid
+  let tgAlloc = input.newTreeGrid
+  let tg = unsafeAddr tgAlloc
   case part
   of 1:
     var seen: set[uint16]
