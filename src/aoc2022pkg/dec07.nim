@@ -42,14 +42,14 @@ proc addFile(t: var FsTree, name: string, size: uint64, parent: NodeIdx): NodeId
   var current = parent
   var previous = result
   while current != ROOT:
-    template dir: untyped = t.fs[current.int]
+    template dir: FsNode = t.fs[current.int]
     var totalSize = 0.uint64
     var isChild = false
     var allComputed = true
     for child in dir.children:
       if child == previous:
         isChild = true
-      template childNode: untyped = t.fs[child.int]
+      template childNode: FsNode = t.fs[child.int]
       case childNode.kind
       of fsFile:
         totalSize += childNode.size
@@ -59,14 +59,14 @@ proc addFile(t: var FsTree, name: string, size: uint64, parent: NodeIdx): NodeId
         else:
           allComputed = false
     if not isChild:
-      t.fs[current.int].children.add previous
+      dir.children.add previous
       totalSize += size
     if allComputed:
       if totalSize <= THRESHOLD:
         t.smallest.incl current
       else:
         t.smallest.excl current
-      t.fs[current.int].treeSize = some(totalSize)
+      dir.treeSize = some(totalSize)
     previous = current
     current = dir.parent
 
