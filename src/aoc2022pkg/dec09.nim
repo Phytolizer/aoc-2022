@@ -1,5 +1,6 @@
 import std/[
   math,
+  sets,
   sequtils,
   strutils,
 ]
@@ -14,13 +15,16 @@ type Coord = object
   x: int
   y: int
 
-template `div`(c: Coord, amount: int): Coord =
-  Coord(x: c.x.floorDiv amount, y: c.y.floorDiv amount)
+template floor(c: Coord): Coord =
+  Coord(
+    x: if c.x < 0: -1 else: 0,
+    y: if c.y < 0: -1 else: 0,
+  )
 
-template pack(c: Coord): (Coord, uint16) =
+template pack(c: Coord): (Coord, uint32) =
   (
-    c div 256,
-    (c.x.uint16 shl 8) or (c.y.uint16 and 0xFF),
+    c.floor,
+    (c.x.uint32 shl 16) or (c.y.uint32 and 0xFFFF),
   )
 
 type Dir = enum
@@ -72,32 +76,27 @@ template newDir(c: char): Dir =
 
 type Chunk = object
   pos: Coord
-  visited: set[uint16]
+  visited: HashSet[uint32]
 
 type ChunkMap = distinct seq[Chunk]
 
-template newChunkMap: ChunkMap =
-  ChunkMap(newSeqOfCap[Chunk](4))
-
-proc add(m: var ChunkMap, chunk: sink Chunk) =
-  seq[Chunk](m).add chunk
+proc newChunkMap: ChunkMap =
+  var map = newSeqOfCap[Chunk](2 * 2)
+  for i in -1 .. 0:
+    for j in -1 .. 0:
+      map.add Chunk(pos: Coord(x: i, y: j), visited: initHashSet[uint32](128))
+  ChunkMap(map)
 
 proc `[]`(m: var ChunkMap, i: int): var Chunk =
   seq[Chunk](m)[i]
-
-proc len(m: ChunkMap): int =
-  seq[Chunk](m).len
 
 proc countVisited(m: ChunkMap): int =
   seq[Chunk](m).mapIt(it.visited.len).sum
 
 proc incl(m: var ChunkMap, coord: Coord) =
   let (chunkPos, packed) = coord.pack
-  for i in 0 ..< m.len:
-    if m[i].pos == chunkPos:
-      m[i].visited.incl packed
-      return
-  m.add Chunk(pos: chunkPos, visited: {packed})
+  let i = (chunkPos.x + 1) * 2 + (chunkPos.y + 1)
+  m[i].visited.incl packed
 
 proc run*(input: string, part: int): string =
   var visited = newChunkMap()
