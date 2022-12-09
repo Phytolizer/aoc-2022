@@ -1,7 +1,6 @@
 import std/[
   math,
-  sets,
-  sequtils,
+  intsets,
   strutils,
 ]
 
@@ -15,17 +14,8 @@ type Coord = object
   x: int
   y: int
 
-template floor(c: Coord): Coord =
-  Coord(
-    x: if c.x < 0: -1 else: 0,
-    y: if c.y < 0: -1 else: 0,
-  )
-
-template pack(c: Coord): (Coord, uint32) =
-  (
-    c.floor,
-    (c.x.uint32 shl 16) or (c.y.uint32 and 0xFFFF),
-  )
+template pack(c: Coord): int =
+  (c.x + 10000) * 20001 + (c.y + 10000)
 
 type Dir = enum
   dLeft
@@ -44,75 +34,40 @@ template `*`(amount: int, dir: Dir): Vec =
   of dUp: Vec(x: 0, y: amount)
   of dDown: Vec(x: 0, y: -amount)
 
-template `+`(c: Coord, vec: Vec): Coord =
-  Coord(x: c.x + vec.x, y: c.y + vec.y)
-
 template `+=`(c: var Coord, vec: Vec) =
-  c = c + vec
+  c.x += vec.x
+  c.y += vec.y
 
 template `+=`(c: var Coord, dir: Dir) =
   c += 1 * dir
 
-template sign(x: int): int =
-  if x < 0: -1
-  elif x > 0: 1
-  else: 0
+proc touching(c1, c2: Coord): bool =
+  abs(c1.x - c2.x) <= 1 and abs(c1.y - c2.y) <= 1
 
-template moveTo(tail: Coord, head: Coord) =
-  let dist = abs(head.x - tail.x) + abs(head.y - tail.y)
-  if (dist > 2 or ((head.x == tail.x or head.y == tail.y) and dist > 1)):
-    tail += Vec(
-      x: sign(head.x - tail.x),
-      y: sign(head.y - tail.y),
-    )
+template moveTo(tail: var Coord, head: Coord) =
+  tail.x += sgn(head.x - tail.x)
+  tail.y += sgn(head.y - tail.y)
 
-template newDir(c: char): Dir =
-  case c
-  of 'L': dLeft
-  of 'R': dRight
-  of 'U': dUp
-  of 'D': dDown
-  else: raiseAssert "Invalid direction"
-
-type Chunk = object
-  pos: Coord
-  visited: HashSet[uint32]
-
-type ChunkMap = distinct seq[Chunk]
-
-proc newChunkMap: ChunkMap =
-  var map = newSeqOfCap[Chunk](2 * 2)
-  for i in -1 .. 0:
-    for j in -1 .. 0:
-      map.add Chunk(pos: Coord(x: i, y: j), visited: initHashSet[uint32](128))
-  ChunkMap(map)
-
-proc `[]`(m: var ChunkMap, i: int): var Chunk =
-  seq[Chunk](m)[i]
-
-proc countVisited(m: ChunkMap): int =
-  seq[Chunk](m).mapIt(it.visited.len).sum
-
-proc incl(m: var ChunkMap, coord: Coord) =
-  let (chunkPos, packed) = coord.pack
-  let i = (chunkPos.x + 1) * 2 + (chunkPos.y + 1)
-  m[i].visited.incl packed
+proc newDir(c: char): Vec =
+  result.x = int(c == 'R') - int(c == 'L')
+  result.y = int(c == 'U') - int(c == 'D')
 
 proc run*(input: string, part: int): string =
-  var visited = newChunkMap()
+  var visited = initIntSet()
   var rope = newSeq[Coord](if part == 1: 2 else: 10)
   template head: untyped = rope[0]
   template tail: untyped = rope[^1]
-  visited.incl tail
+  visited.incl tail.pack
   for line in input.splitLines:
     if line.isEmptyOrWhitespace: break
     let dir = line[0].newDir()
     let amount = line.simpleParseInt(2)
-    let target = head + amount * dir
-    while head != target:
+    for _ in 0 ..< amount:
       head += dir
-      for i in 1 ..< rope.len:
+      var i = 1
+      while i < rope.len and not touching(rope[i], rope[i - 1]):
         rope[i].moveTo(rope[i - 1])
-      visited.incl tail
+        inc i
+      visited.incl tail.pack
 
-  $visited.countVisited
+  $visited.len
