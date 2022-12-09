@@ -1,6 +1,5 @@
 import std/[
   algorithm,
-  re,
   sequtils,
   strutils,
 ]
@@ -25,16 +24,26 @@ type Instruction = object
   source: int
   dest: int
 
-let instRe = re(r"move (\d+) from (\d+) to (\d+)", {reStudy})
+template indexOfIt(s: string, begin: int, predicate: untyped): untyped =
+  var result = -1
+  for i in begin ..< s.len:
+    let it {.inject.} = s[i]
+    if predicate:
+      result = i
+      break
+  result
 
 proc parseInstructions(input: seq[string]): seq[Instruction] =
   for line in input.filterIt(it.startsWith "move"):
-    var matches = newSeq[string](3)
-    assert line.match(instRe, matches)
+    let first = 5
+    let firstEnd = line.indexOfIt(first, it notin Digits)
+    let second = firstEnd + 6
+    let secondEnd = line.indexOfIt(second, it notin Digits)
+    let third = secondEnd + 4
     result.add Instruction(
-      num: matches[0].parseInt,
-      source: matches[1].parseInt,
-      dest: matches[2].parseInt
+      num: line[first ..< firstEnd].parseInt,
+      source: line[second ..< secondEnd].parseInt,
+      dest: line[third .. ^1].parseInt
     )
 
 type CrateStacks = object
