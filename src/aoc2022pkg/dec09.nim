@@ -1,10 +1,11 @@
 import std/[
   math,
   sequtils,
+  strformat,
   strutils,
 ]
 
-const DEBUGGING = true
+const DEBUGGING = false
 
 when DEBUGGING:
   import print
@@ -24,14 +25,14 @@ type Coord = object
   y: int
 
 when DEBUGGING:
-  template fromPacked(packed: uint16): Coord =
+  template unpackChunk(packed: uint16): Coord =
     Coord(
       x: (packed shr 8).int,
       y: (packed and 0xFF).int,
     )
 
 template `div`(c: Coord, amount: int): Coord =
-  Coord(x: c.x div amount, y: c.y div amount)
+  Coord(x: c.x.floorDiv amount, y: c.y.floorDiv amount)
 
 template pack(c: Coord): (Coord, uint16) =
   (
@@ -65,7 +66,7 @@ template `+=`(c: var Coord, vec: Vec) =
 template `+=`(c: var Coord, dir: Dir) =
   c += 1 * dir
 
-template norm(x: int): int =
+template sign(x: int): int =
   if x < 0: -1
   elif x > 0: 1
   else: 0
@@ -74,8 +75,8 @@ template moveTo(tail: Coord, head: Coord) =
   let dist = abs(head.x - tail.x) + abs(head.y - tail.y)
   if (dist > 2 or ((head.x == tail.x or head.y == tail.y) and dist > 1)):
     tail += Vec(
-      x: norm(head.x - tail.x),
-      y: norm(head.y - tail.y),
+      x: sign(head.x - tail.x),
+      y: sign(head.y - tail.y),
     )
 
 template newDir(c: char): Dir =
@@ -111,15 +112,20 @@ proc incl(m: var ChunkMap, coord: Coord) =
   let (chunkPos, packed) = coord.pack
   for i in 0 ..< m.len:
     if m[i].pos == chunkPos:
+      if packed notin m[i].visited:
+        dprint "[NEW]  ", chunkPos, packed.unpackChunk
+      else:
+        dprint "[DUPE] ", chunkPos, packed.unpackChunk
       m[i].visited.incl packed
       return
+  dprint "[CHUNK]", chunkPos, packed.unpackChunk
   m.add Chunk(pos: chunkPos, visited: {packed})
 
 when DEBUGGING:
   template all(m: ChunkMap): seq[Coord] =
     var result = newSeq[Coord]()
     for i in 0 ..< m.len:
-      result.add m[i].visited.toSeq.mapIt(it.fromPacked)
+      result.add m[i].visited.toSeq.mapIt(it.unpackChunk)
     result
 
 proc run*(input: string, part: int): string =
@@ -134,14 +140,14 @@ proc run*(input: string, part: int): string =
     let target = head + amount * dir
     while head != target:
       head += dir
-      dprint head
       tail.moveTo(head)
-      dprint tail
+      when DEBUGGING:
+        print tail
       visited.incl tail
 
-  dprint visited.countVisited
-  dprint visited.all
   when DEBUGGING:
-    quit 0
+    if input.len > 10000 or true:
+      print visited.countVisited
+      quit 0
   else:
     $visited.countVisited
