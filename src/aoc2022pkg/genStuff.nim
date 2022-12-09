@@ -24,24 +24,26 @@ macro runDay*(day: int, runFunc: untyped): untyped =
     block:
       let inputPath = "tests/dec" & align($`day`, 2, '0') & ".txt"
       let input = inputPath.readFile()
-      let start = getMonoTime()
-      const runs = 10000
-      for i in 0..<runs:
-        discard [
-          `runFunc`(input, 1),
-          `runFunc`(input, 2),
-        ]
-      let fin = getMonoTime()
-      let elapsed = (fin - start).inNanoseconds div runs
-      echo(
-        "December ",
-        align($`day`, 2, '0'),
-        ": ",
-        elapsed.float64 / 1000.0,
-        " μs/run (",
-        runs,
-        " runs)"
-      )
+      for part in 1 .. 2:
+        let start = getMonoTime()
+        const runs = 10000
+        for i in 0..<runs:
+          discard `runFunc`(input, part)
+
+        let fin = getMonoTime()
+        let elapsed = (fin - start).inNanoseconds div runs
+        let elapsedUs = elapsed.float64 / 1000.0
+        echo(
+          "December ",
+          align($`day`, 2, '0'),
+          ", part ",
+          part,
+          ": ",
+          formatFloat(elapsedUs, ffDecimal, 3).align(8),
+          " μs/run (",
+          runs,
+          " runs)"
+        )
 
 macro runDays*(maxDay: int): untyped =
   let maxDay = maxDay.intVal
