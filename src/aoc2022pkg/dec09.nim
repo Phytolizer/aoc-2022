@@ -1,18 +1,8 @@
 import std/[
   math,
   sequtils,
-  strformat,
   strutils,
 ]
-
-const DEBUGGING = false
-
-when DEBUGGING:
-  import print
-
-template dprint(x: varargs[untyped]): untyped =
-  when DEBUGGING:
-    print x
 
 proc simpleParseInt(s: string, start: int): int =
   for i in start ..< s.len:
@@ -23,13 +13,6 @@ proc simpleParseInt(s: string, start: int): int =
 type Coord = object
   x: int
   y: int
-
-when DEBUGGING:
-  template unpackChunk(packed: uint16): Coord =
-    Coord(
-      x: (packed shr 8).int,
-      y: (packed and 0xFF).int,
-    )
 
 template `div`(c: Coord, amount: int): Coord =
   Coord(x: c.x.floorDiv amount, y: c.y.floorDiv amount)
@@ -112,26 +95,15 @@ proc incl(m: var ChunkMap, coord: Coord) =
   let (chunkPos, packed) = coord.pack
   for i in 0 ..< m.len:
     if m[i].pos == chunkPos:
-      if packed notin m[i].visited:
-        dprint "[NEW]  ", chunkPos, packed.unpackChunk
-      else:
-        dprint "[DUPE] ", chunkPos, packed.unpackChunk
       m[i].visited.incl packed
       return
-  dprint "[CHUNK]", chunkPos, packed.unpackChunk
   m.add Chunk(pos: chunkPos, visited: {packed})
-
-when DEBUGGING:
-  template all(m: ChunkMap): seq[Coord] =
-    var result = newSeq[Coord]()
-    for i in 0 ..< m.len:
-      result.add m[i].visited.toSeq.mapIt(it.unpackChunk)
-    result
 
 proc run*(input: string, part: int): string =
   var visited = newChunkMap()
-  var head = Coord(x: 0, y: 0)
-  var tail = head
+  var rope = newSeq[Coord](if part == 1: 2 else: 10)
+  template head: untyped = rope[0]
+  template tail: untyped = rope[^1]
   visited.incl tail
   for line in input.splitLines:
     if line.isEmptyOrWhitespace: break
@@ -140,14 +112,8 @@ proc run*(input: string, part: int): string =
     let target = head + amount * dir
     while head != target:
       head += dir
-      tail.moveTo(head)
-      when DEBUGGING:
-        print tail
+      for i in 1 ..< rope.len:
+        rope[i].moveTo(rope[i - 1])
       visited.incl tail
 
-  when DEBUGGING:
-    if input.len > 10000 or true:
-      print visited.countVisited
-      quit 0
-  else:
-    $visited.countVisited
+  $visited.countVisited
