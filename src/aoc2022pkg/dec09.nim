@@ -136,7 +136,7 @@ proc run*(input: string, part: int): string =
       head += dir
       dprint head
       tail.moveTo(head)
-      dprint head
+      dprint tail
       visited.incl tail
 
   dprint visited.countVisited
