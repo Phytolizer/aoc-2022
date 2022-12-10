@@ -3,7 +3,7 @@ import std/[
   strformat,
 ]
 
-proc adventAssertion(moduleName: string, input: NimNode, part: int, expected: string): NimNode =
+proc adventAssertion(moduleName: string, input: NimNode, part: int, expected: NimNode): NimNode =
   result = nnkCommand.newTree(
     ident"check",
     nnkInfix.newTree(
@@ -16,7 +16,7 @@ proc adventAssertion(moduleName: string, input: NimNode, part: int, expected: st
         input,
         newLit(part)
       ),
-      newLit(expected)
+      expected
     )
   )
 
@@ -64,7 +64,7 @@ macro adventTest*(day: int, expected: array[4, string]): untyped =
       inputName = ["simple", "full"][i mod 2]
       part = i div 2 + 1
     tests.add Test(
-      body: adventAssertion(base, input, part, expected[i].strVal),
+      body: adventAssertion(base, input, part, expected[i]),
       name: fmt"{inputName} {part}"
     )
 
