@@ -1,7 +1,7 @@
 import std/strutils
 
 type Cpu = object
-  x: int = 1
+  x: int
   cycle: int
 
 type Crt = object
@@ -28,7 +28,7 @@ proc render(crt: Crt): seq[string] =
   result
 
 proc run*(input: string, part: int): string =
-  var cpu = Cpu()
+  var cpu = Cpu(x: 1)
   var crt = Crt()
   var checkpoint = 20
   var strength = 0
