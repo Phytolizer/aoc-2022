@@ -16,12 +16,14 @@ type Monkey = object
 proc parseExpr(exp: string): proc(old: int): int =
   let space = exp.find(' ')
   let first = exp[0 ..< space]
+  let firstInt = if first == "old": 0 else: first.parseInt
   let space2 = exp.find(' ', space + 1)
   let op = exp[space + 1 ..< space2]
   let second = exp[space2 + 1 .. ^1]
+  let secondInt = if second == "old": 0 else: second.parseInt
   return proc (old: int): int =
-    let p1 = if first == "old": old else: first.parseInt
-    let p2 = if second == "old": old else: second.parseInt
+    let p1 = if first == "old": old else: firstInt
+    let p2 = if second == "old": old else: secondInt
     case op
     of "+": p1 + p2
     of "*": p1 * p2

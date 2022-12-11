@@ -6,8 +6,8 @@ import std/[
 
 import aoc2022pkg/genStuff
 
-importDays(10)
-const RUN_FUNCS = runFuncs(10)
+importDays(11)
+const RUN_FUNCS = runFuncs(11)
 
 when isMainModule:
   let params = commandLineParams()
@@ -17,4 +17,4 @@ when isMainModule:
   else:
     for i in 0 ..< 10:
       echo i
-      runDays(10)
+      runDays(11)
