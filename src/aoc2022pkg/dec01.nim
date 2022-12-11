@@ -1,26 +1,9 @@
 import std/[
   math,
-  sequtils,
   strutils,
 ]
 
-type MaxList = object
-  n: int
-  list: seq[int]
-
-proc newMaxList(n: int): MaxList =
-  result.n = n
-  result.list = newSeqOfCap[int](n)
-
-proc add(self: var MaxList, x: int) =
-  if self.list.len < self.n:
-    self.list.add(x)
-    return
-
-  let min = self.list.min()
-  if x < min:
-    return
-  self.list = self.list.filterIt(it != min).concat(@[x])
+import max_list
 
 proc run*(input: string, part: int): string =
   var currTotal = 0
@@ -28,7 +11,7 @@ proc run*(input: string, part: int): string =
     of 1: 1
     of 2: 3
     else: raiseAssert "Invalid part " & $part
-  var bestTotals = newMaxList(n)
+  var bestTotals = newMaxList[int](n)
   for line in input.splitLines:
     if line.isEmptyOrWhitespace:
       bestTotals.add(currTotal)
