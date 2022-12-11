@@ -27,7 +27,7 @@ macro runDay*(day: int, runFunc: untyped): untyped =
       for part in 1 .. 2:
         let start = getMonoTime()
         const runs = 10000
-        for i in 0..<runs:
+        for i in 0 ..< runs:
           discard `runFunc`(input, part)
 
         let fin = getMonoTime()
@@ -44,6 +44,13 @@ macro runDay*(day: int, runFunc: untyped): untyped =
           runs,
           " runs)"
         )
+
+macro runDayOnce*(day: int, runFunc: untyped, part: int): untyped =
+  result = quote do:
+    block:
+      let inputPath = "tests/dec" & align($`day`, 2, '0') & ".txt"
+      let input = inputPath.readFile()
+      discard `runFunc`(input, `part`)
 
 macro runDays*(maxDay: int): untyped =
   let maxDay = maxDay.intVal
