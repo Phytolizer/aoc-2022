@@ -6,14 +6,27 @@ import std/[
 
 import max_list
 
+type Operation = object
+  lhs: int
+  op: char
+  rhs: int
+
 type Monkey = object
   startingItems: seq[int]
-  operation: proc (old: int): int {.closure.}
+  operation: Operation
   test: int
   throw: array[bool, int]
   inspectCount: int
 
-proc parseExpr(exp: string): proc(old: int): int =
+proc inspect(m: Monkey, item: int): int =
+  let lhs = if m.operation.lhs == 0: item else: m.operation.lhs
+  let rhs = if m.operation.rhs == 0: item else: m.operation.rhs
+  case m.operation.op
+  of '+': lhs + rhs
+  of '*': lhs * rhs
+  else: raiseAssert "unreachable"
+
+proc parseExpr(exp: string): Operation =
   let space = exp.find(' ')
   let first = exp[0 ..< space]
   let firstInt = if first == "old": 0 else: first.parseInt
@@ -21,13 +34,11 @@ proc parseExpr(exp: string): proc(old: int): int =
   let op = exp[space + 1 ..< space2]
   let second = exp[space2 + 1 .. ^1]
   let secondInt = if second == "old": 0 else: second.parseInt
-  return proc (old: int): int =
-    let p1 = if first == "old": old else: firstInt
-    let p2 = if second == "old": old else: secondInt
-    case op
-    of "+": p1 + p2
-    of "*": p1 * p2
-    else: raiseAssert "unreachable"
+  return Operation(
+    lhs: firstInt,
+    op: op[0],
+    rhs: secondInt
+  )
 
 proc run*(input: string, part: int): string =
   var monkeys = newSeq[Monkey]()
@@ -84,7 +95,7 @@ proc run*(input: string, part: int): string =
       var throwTargets = newSeqOfCap[int](monkey.startingItems.len)
       for item in monkey.startingItems.mitems:
         inc monkey.inspectCount
-        item = monkey.operation(item) div divisor mod testLcm
+        item = monkey.inspect(item) div divisor mod testLcm
         if item mod monkey.test == 0:
           throwTargets.add(monkey.throw[true])
         else:
