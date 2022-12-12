@@ -26,7 +26,7 @@ macro runDay*(day: int, runFunc: untyped): untyped =
       let input = inputPath.readFile()
       for part in 1 .. 2:
         let start = getMonoTime()
-        const runs = 10000
+        const runs = 1000
         for i in 0 ..< runs:
           discard `runFunc`(input, part)
 
